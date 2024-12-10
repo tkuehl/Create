@@ -33,7 +33,7 @@ public class PressingRecipeGen extends ProcessingRecipeGen {
 		// Better End Forge
 
 		BE = moddedPaths(Mods.BE, "amber_moss", "cave_moss", "chorus_nylium", "crystal_moss",
-				"end_moss", "end_myclium", "jungle_moss", "pink_moss", "shadow_grass"),
+				"end_moss", "end_mycelium", "jungle_moss", "pink_moss", "shadow_grass"),
 		// Environmental
 		ENV_MYCELIUM = create("compat/environmental/mycelium_path", b -> b.require(Blocks.MYCELIUM)
 				.output(Mods.ENV, "mycelium_path")

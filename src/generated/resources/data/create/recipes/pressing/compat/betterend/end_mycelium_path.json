@@ -2,12 +2,12 @@
   "type": "create:pressing",
   "ingredients": [
     {
-      "item": "betterend:end_myclium"
+      "item": "betterend:end_mycelium"
     }
   ],
   "results": [
     {
-      "item": "betterend:end_myclium_path"
+      "item": "betterend:end_mycelium_path"
     }
   ],
   "fabric:load_conditions": [
