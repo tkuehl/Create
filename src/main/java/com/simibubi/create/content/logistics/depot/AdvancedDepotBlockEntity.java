@@ -11,6 +11,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
+import com.simibubi.create.foundation.fluid.FluidHelper;
 import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.RecipeApplier;
 import com.simibubi.create.foundation.utility.Components;
@@ -40,6 +41,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.commands.data.StorageDataAccessor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.BlastingRecipe;
@@ -272,6 +274,17 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 		contentsChanged = true;
 	}
 
+	@Override
+	public void tick() {
+		super.tick();
+
+		boolean fluidInTankIsLava = FluidHelper.isLava(outputTank.getPrimaryHandler().getFluid().getFluid());
+		ItemStack itemInStorage = getHeldItem();
+		if (fluidInTankIsLava && canProcess(itemInStorage, level)) {
+			process(itemInStorage, level);
+		}
+	}
+
 	public boolean canProcess(ItemStack stack, Level level) {
 		RECIPE_WRAPPER.setItem(0, stack);
 		Optional<SmeltingRecipe> smeltingRecipe = level.getRecipeManager()
@@ -292,7 +305,6 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 		return !stack.getItem()
 				.isFireResistant();
 	}
-
 
 	@Nullable
 	public List<ItemStack> process(ItemStack stack, Level level) {
