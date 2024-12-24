@@ -13,6 +13,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 import com.simibubi.create.foundation.fluid.FluidHelper;
+import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.RecipeApplier;
 import com.simibubi.create.foundation.utility.Components;
@@ -24,6 +25,7 @@ import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 
 import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import io.github.fabricators_of_create.porting_lib.transfer.item.RecipeWrapper;
 import io.github.fabricators_of_create.porting_lib.util.FluidTextUtil;
@@ -35,6 +37,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.ChatFormatting;
@@ -308,21 +311,30 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 	@Override
 	public void tick() {
 		super.tick();
-		boolean fluidInTankIsLava = false;
+		SmartFluidTankBehaviour lavabehaviour = null;
+		SmartFluidTank lavaStack = null;
 
 		for (SmartFluidTankBehaviour behaviour : tanks) {
 			for (SmartFluidTankBehaviour.TankSegment tank : behaviour.getTanks()) {
 				FluidStack fluidStack = tank.getTank().getFluid();
-				if (FluidHelper.isLava(fluidStack.getFluid()))
-					fluidInTankIsLava = true;
+				if (FluidHelper.isLava(fluidStack.getFluid())) {
+					lavabehaviour = behaviour;
+					lavaStack = tank.getTank();
+				}
 			}
 		}
 
 		ItemStack itemInStorage = getHeldItem();
-		if (fluidInTankIsLava && canProcess(itemInStorage, level)) {
+		if (lavaStack != null && canProcess(itemInStorage, level)) {
 			List<ItemStack> output = process(itemInStorage, level);
 			if (output != null && !output.isEmpty()) {
 				TransportedItemStack transported = new TransportedItemStack(output.get(0));
+				try (Transaction t = TransferUtil.getTransaction()) {
+					lavabehaviour.allowInsertion();
+					try (Transaction nested = t.openNested()) {
+						lavaStack.extract(lavaStack.variant, 1000, nested);
+					}
+				}
 				depotBehaviour.setHeldItem(transported);
 			}
 		}
