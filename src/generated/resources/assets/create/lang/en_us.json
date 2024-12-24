@@ -1153,6 +1153,7 @@
   "create.gui.gauge.info_header": "Gauge Information:",
   "create.gui.goggles.at_current_speed": "at current speed",
   "create.gui.goggles.basin_contents": "Basin Contents:",
+  "create.gui.goggles.advanced_depot_contents": "Advanced Depot Contents:",
   "create.gui.goggles.fluid_container": "Fluid Container Info:",
   "create.gui.goggles.fluid_container.capacity": "Capacity: ",
   "create.gui.goggles.generator_stats": "Generator Stats:",
