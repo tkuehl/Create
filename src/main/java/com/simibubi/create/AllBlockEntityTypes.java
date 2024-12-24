@@ -3,9 +3,6 @@ package com.simibubi.create;
 import static com.simibubi.create.Create.REGISTRATE;
 import static com.simibubi.create.content.redstone.displayLink.AllDisplayBehaviours.assignDataBehaviourBE;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
 import com.simibubi.create.content.contraptions.actors.contraptionControls.ContraptionControlsBlockEntity;
 import com.simibubi.create.content.contraptions.actors.contraptionControls.ContraptionControlsRenderer;
 import com.simibubi.create.content.contraptions.actors.harvester.HarvesterBlockEntity;
@@ -162,6 +159,8 @@ import com.simibubi.create.content.logistics.chute.ChuteRenderer;
 import com.simibubi.create.content.logistics.chute.SmartChuteBlockEntity;
 import com.simibubi.create.content.logistics.chute.SmartChuteRenderer;
 import com.simibubi.create.content.logistics.crate.CreativeCrateBlockEntity;
+import com.simibubi.create.content.logistics.depot.AdvancedDepotBlockEntity;
+import com.simibubi.create.content.logistics.depot.AdvancedDepotRenderer;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 import com.simibubi.create.content.logistics.depot.DepotRenderer;
 import com.simibubi.create.content.logistics.depot.EjectorBlockEntity;
@@ -759,10 +758,16 @@ public class AllBlockEntityTypes {
 		.register();
 
 	public static final BlockEntityEntry<DepotBlockEntity> DEPOT = REGISTRATE
-		.blockEntity("depot", DepotBlockEntity::new)
-		.validBlocks(AllBlocks.DEPOT)
-		.renderer(() -> DepotRenderer::new)
-		.register();
+			.blockEntity("depot", DepotBlockEntity::new)
+			.validBlocks(AllBlocks.DEPOT)
+			.renderer(() -> DepotRenderer::new)
+			.register();
+
+	public static final BlockEntityEntry<AdvancedDepotBlockEntity> ADVANCED_DEPOT = REGISTRATE
+			.blockEntity("advanced_depot", AdvancedDepotBlockEntity::new)
+			.validBlocks(AllBlocks.ADVANCED_DEPOT)
+			.renderer(() -> AdvancedDepotRenderer::new)
+			.register();
 
 	public static final BlockEntityEntry<EjectorBlockEntity> WEIGHTED_EJECTOR = REGISTRATE
 		.blockEntity("weighted_ejector", EjectorBlockEntity::new)

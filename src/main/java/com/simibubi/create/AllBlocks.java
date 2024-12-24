@@ -162,6 +162,7 @@ import com.simibubi.create.content.logistics.chute.ChuteGenerator;
 import com.simibubi.create.content.logistics.chute.ChuteItem;
 import com.simibubi.create.content.logistics.chute.SmartChuteBlock;
 import com.simibubi.create.content.logistics.crate.CreativeCrateBlock;
+import com.simibubi.create.content.logistics.depot.AdvancedDepotBlock;
 import com.simibubi.create.content.logistics.depot.DepotBlock;
 import com.simibubi.create.content.logistics.depot.EjectorBlock;
 import com.simibubi.create.content.logistics.depot.EjectorItem;
@@ -736,14 +737,24 @@ public class AllBlocks {
 			.register();
 
 	public static final BlockEntry<DepotBlock> DEPOT = REGISTRATE.block("depot", DepotBlock::new)
-		.initialProperties(SharedProperties::stone)
-		.properties(p -> p.mapColor(MapColor.COLOR_GRAY))
-		.transform(axeOrPickaxe())
-		.blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-		.onRegister(assignDataBehaviour(new ItemNameDisplaySource(), "combine_item_names"))
-		.item()
-		.transform(customItemModel("_", "block"))
-		.register();
+			.initialProperties(SharedProperties::stone)
+			.properties(p -> p.mapColor(MapColor.COLOR_GRAY))
+			.transform(axeOrPickaxe())
+			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+			.onRegister(assignDataBehaviour(new ItemNameDisplaySource(), "combine_item_names"))
+			.item()
+			.transform(customItemModel("_", "block"))
+			.register();
+
+	public static final BlockEntry<AdvancedDepotBlock> ADVANCED_DEPOT = REGISTRATE.block("advanced_depot", AdvancedDepotBlock::new)
+			.initialProperties(SharedProperties::stone)
+			.properties(p -> p.mapColor(MapColor.COLOR_GRAY))
+			.transform(axeOrPickaxe())
+			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+			.onRegister(assignDataBehaviour(new ItemNameDisplaySource(), "combine_item_names"))
+			.item()
+			.transform(customItemModel("_", "block"))
+			.register();
 
 	public static final BlockEntry<EjectorBlock> WEIGHTED_EJECTOR =
 		REGISTRATE.block("weighted_ejector", EjectorBlock::new)

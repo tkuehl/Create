@@ -51,7 +51,6 @@ import com.simibubi.create.infrastructure.ponder.scenes.trains.TrainStationScene
 import com.tterrag.registrate.fabric.RegistryObject;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 public class PonderIndex {
@@ -144,6 +143,7 @@ public class PonderIndex {
 		HELPER.addStoryBoard(AllItems.EMPTY_BLAZE_BURNER, "empty_blaze_burner", ProcessingScenes::emptyBlazeBurner);
 		HELPER.addStoryBoard(AllBlocks.BLAZE_BURNER, "blaze_burner", ProcessingScenes::blazeBurner);
 		HELPER.addStoryBoard(AllBlocks.DEPOT, "depot", BeltScenes::depot);
+		HELPER.addStoryBoard(AllBlocks.ADVANCED_DEPOT, "advanced_depot", BeltScenes::depot);
 		HELPER.forComponents(AllBlocks.WEIGHTED_EJECTOR)
 			.addStoryBoard("weighted_ejector/eject", EjectorScenes::ejector)
 			.addStoryBoard("weighted_ejector/split", EjectorScenes::splitY)

@@ -35,6 +35,7 @@
     "create:basin",
     "create:blaze_burner",
     "create:lit_blaze_burner",
+    "create:advanced_depot",
     "create:depot",
     "create:weighted_ejector",
     "create:chute",
