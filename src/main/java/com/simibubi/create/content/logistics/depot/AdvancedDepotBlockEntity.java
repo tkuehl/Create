@@ -3,6 +3,7 @@ package com.simibubi.create.content.logistics.depot;
 import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.kinetics.belt.behaviour.DirectBeltInputBehaviour;
+import com.simibubi.create.content.kinetics.belt.transport.TransportedItemStack;
 import com.simibubi.create.content.processing.basin.BasinBlock;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -307,11 +308,23 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 	@Override
 	public void tick() {
 		super.tick();
+		boolean fluidInTankIsLava = false;
 
-		boolean fluidInTankIsLava = FluidHelper.isLava(outputTank.getPrimaryHandler().getFluid().getFluid());
+		for (SmartFluidTankBehaviour behaviour : tanks) {
+			for (SmartFluidTankBehaviour.TankSegment tank : behaviour.getTanks()) {
+				FluidStack fluidStack = tank.getTank().getFluid();
+				if (FluidHelper.isLava(fluidStack.getFluid()))
+					fluidInTankIsLava = true;
+			}
+		}
+
 		ItemStack itemInStorage = getHeldItem();
 		if (fluidInTankIsLava && canProcess(itemInStorage, level)) {
-			process(itemInStorage, level);
+			List<ItemStack> output = process(itemInStorage, level);
+			if (output != null && !output.isEmpty()) {
+				TransportedItemStack transported = new TransportedItemStack(output.get(0));
+				depotBehaviour.setHeldItem(transported);
+			}
 		}
 	}
 
@@ -331,6 +344,8 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 				.getRecipeFor(RecipeType.SMELTING, RECIPE_WRAPPER, level)
 				.filter(AllRecipeTypes.CAN_BE_AUTOMATED);
 
+		RegistryAccess registryAccess = level.registryAccess();
+
 		if (smeltingRecipe.isPresent())
 			return null;
 
@@ -339,10 +354,10 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 				.getRecipeFor(RecipeType.BLASTING, RECIPE_WRAPPER, level)
 				.filter(AllRecipeTypes.CAN_BE_AUTOMATED);
 
-		RegistryAccess registryAccess = level.registryAccess();
-		if (!blastingRecipe.isPresent())
-			return null;
-		return blastingRecipe.get().getResultItem(registryAccess);
+		if (blastingRecipe.isPresent())
+			return blastingRecipe.get().getResultItem(registryAccess);
+
+		return null;
 	}
 
 	@Nullable
