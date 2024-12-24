@@ -218,7 +218,7 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-		Lang.translate("gui.goggles.advanced_depot_contents")
+		Lang.translate("gui.goggles.advanced_depot_fluid")
 				.forGoggles(tooltip);
 
 		boolean isEmpty = true;
@@ -246,6 +246,36 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 
 		if (isEmpty)
 			tooltip.remove(0);
+
+		/// Display held item
+		Lang.translate("gui.goggles.advanced_depot_item")
+				.forGoggles(tooltip);
+
+		ItemStack heldItem = getHeldItem();
+		Lang.text("")
+				.add(Lang.itemName(heldItem)
+						.add(Lang.text(" "))
+						.style(ChatFormatting.GRAY)
+						.add(Lang.text(heldItem.getDisplayName().getString())
+								.add(unitSuffix)
+								.style(ChatFormatting.BLUE)))
+				.forGoggles(tooltip, 1);
+
+		/// Display blast recipe
+		ItemStack blastingItem = GetBlastRecipeItem(heldItem);
+		if (blastingItem != null) {
+			Lang.translate("gui.goggles.advanced_depot_recipe")
+					.forGoggles(tooltip);
+
+			Lang.text("")
+					.add(Lang.itemName(heldItem)
+							.add(Lang.text(" "))
+							.style(ChatFormatting.GRAY)
+							.add(Lang.text(heldItem.getDisplayName().getString())
+									.add(unitSuffix)
+									.style(ChatFormatting.BLUE)))
+					.forGoggles(tooltip, 1);
+		}
 
 		return true;
 	}
@@ -286,24 +316,33 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 	}
 
 	public boolean canProcess(ItemStack stack, Level level) {
+		ItemStack blastingItem = GetBlastRecipeItem(stack);
+		if (blastingItem != null)
+			return true;
+
+		return !stack.getItem()
+				.isFireResistant();
+	}
+
+	@Nullable
+	public ItemStack GetBlastRecipeItem(ItemStack stack) {
 		RECIPE_WRAPPER.setItem(0, stack);
 		Optional<SmeltingRecipe> smeltingRecipe = level.getRecipeManager()
 				.getRecipeFor(RecipeType.SMELTING, RECIPE_WRAPPER, level)
 				.filter(AllRecipeTypes.CAN_BE_AUTOMATED);
 
 		if (smeltingRecipe.isPresent())
-			return true;
+			return null;
 
 		RECIPE_WRAPPER.setItem(0, stack);
 		Optional<BlastingRecipe> blastingRecipe = level.getRecipeManager()
 				.getRecipeFor(RecipeType.BLASTING, RECIPE_WRAPPER, level)
 				.filter(AllRecipeTypes.CAN_BE_AUTOMATED);
 
-		if (blastingRecipe.isPresent())
-			return true;
-
-		return !stack.getItem()
-				.isFireResistant();
+		RegistryAccess registryAccess = level.registryAccess();
+		if (!blastingRecipe.isPresent())
+			return null;
+		return blastingRecipe.get().getResultItem(registryAccess);
 	}
 
 	@Nullable
