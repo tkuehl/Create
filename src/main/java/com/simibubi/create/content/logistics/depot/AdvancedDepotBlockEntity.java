@@ -49,6 +49,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.commands.data.StorageDataAccessor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.BlastingRecipe;
@@ -94,6 +95,9 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 	private final Map<Direction, StorageProvider<FluidVariant>> spoutputOutputs = new HashMap<>();
 
 	private static final RecipeWrapper RECIPE_WRAPPER = new RecipeWrapper(new ItemStackHandler(1));
+
+	public int runningTicks;
+	public int processingTicks;
 
 	SnapshotParticipant<Data> snapshotParticipant = new SnapshotParticipant<>() {
 		@Override
@@ -269,20 +273,17 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 				.forGoggles(tooltip, 1);
 
 		/// Display blast recipe
-		ItemStack blastingItem = GetBlastRecipeItem(heldItem);
-		if (blastingItem != null) {
-			Lang.translate("gui.goggles.advanced_depot_recipe")
-					.forGoggles(tooltip);
+		Lang.translate("gui.goggles.advanced_depot_recipe")
+				.forGoggles(tooltip);
 
-			Lang.text("")
-					.add(Lang.itemName(heldItem)
-							.add(Lang.text(" "))
-							.style(ChatFormatting.GRAY)
-							.add(Lang.text(heldItem.getDisplayName().getString())
-									.add(unitSuffix)
-									.style(ChatFormatting.BLUE)))
-					.forGoggles(tooltip, 1);
-		}
+		Lang.text("")
+				.add(Lang.itemName(heldItem)
+						.add(Lang.text(" "))
+						.style(ChatFormatting.GRAY)
+						.add(Lang.text(String.valueOf(heldItem.getCount()))
+								.add(unitSuffix)
+								.style(ChatFormatting.BLUE)))
+				.forGoggles(tooltip, 1);
 
 		return true;
 	}
@@ -314,28 +315,56 @@ public class AdvancedDepotBlockEntity extends DepotBlockEntity implements IHaveG
 	@Override
 	public void tick() {
 		super.tick();
+		long lavaAmount = 0;
 		boolean hasLava = false;
+
+		if (runningTicks >= 40) {
+			runningTicks = 0;
+			return;
+		}
 
 		for (SmartFluidTankBehaviour behaviour : tanks) {
 			for (SmartFluidTankBehaviour.TankSegment tank : behaviour.getTanks()) {
 				FluidStack fluidStack = tank.getTank().getFluid();
-				if (fluidStack.getAmount() >= FluidConstants.BUCKET && FluidHelper.isLava(fluidStack.getFluid())) {
+				if (fluidStack.getAmount() >= FluidConstants.DROPLET && FluidHelper.isLava(fluidStack.getFluid())) {
+					lavaAmount = fluidStack.getAmount();
 					hasLava = true;
 				}
 			}
 		}
 
 		ItemStack itemInStorage = getHeldItem();
-		if (hasLava && canProcess(itemInStorage, level)) {
-			List<ItemStack> output = process(itemInStorage, level);
-			if (output != null && !output.isEmpty()) {
-				/// Set depot item to processed item
-				TransportedItemStack transported = new TransportedItemStack(output.get(0));
-				depotBehaviour.setHeldItem(transported);
-				/// Remove consumed fluid
-				DecreaseFluidLevel(FluidConstants.BUCKET);
+		boolean canProcessItem = canProcess(itemInStorage, level);
+		long consumedFluid = Math.round((FluidConstants.BUCKET / 64) * itemInStorage.getCount());
+		if (hasLava && canProcessItem && lavaAmount >= consumedFluid) {
+			if ((!level.isClientSide || isVirtual()) && runningTicks == 20) {
+		if (processingTicks < 0) {
+					int recipeSpeed = itemInStorage.getCount();
+					//int speed = 512;
+					processingTicks = recipeSpeed;
+				} else {
+					processingTicks--;
+					if (processingTicks == 0) {
+						runningTicks++;
+						processingTicks = -1;
+
+						if (lavaAmount > consumedFluid) {
+							List<ItemStack> output = process(itemInStorage, level);
+							if (output != null && !output.isEmpty()) {
+								/// Set depot item to processed item
+								TransportedItemStack transported = new TransportedItemStack(output.get(0));
+								depotBehaviour.setHeldItem(transported);
+								DecreaseFluidLevel(consumedFluid);
+							}
+						}
+						sendData();
+					}
+				}
 			}
 		}
+
+		if (runningTicks != 20)
+			runningTicks++;
 	}
 
 	public boolean canProcess(ItemStack stack, Level level) {
